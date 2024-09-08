@@ -19,7 +19,6 @@ help:
 # Install the Helm chart
 .PHONY: install
 install: lint
-
 	helm upgrade --install $(RELEASE_NAME) $(CHART_DIR) --namespace $(NAMESPACE) --kubeconfig $(KUBECONFIG) --create-namespace
 
 # Upgrade the Helm chart (if it's already installed)
