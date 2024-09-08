@@ -1,0 +1,5 @@
+apiVersion: v2
+name: secret-printer-webserver
+description: A simple webserver that prints a Kubernetes secret.
+version: 0.1.0
+appVersion: "1.0"
