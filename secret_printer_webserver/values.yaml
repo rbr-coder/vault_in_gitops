@@ -10,4 +10,4 @@ service:
   port: 80
 
 secretName: my-secret
-secretKey: my-secret-key
+secretKey: password
