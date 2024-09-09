@@ -1,6 +1,6 @@
 # Secret Printer Webserver
 CHART_NAME=secret-printer-webserver
-NAMESPACE_SECRET_PRINTER=secret-printer-webserver
+NAMESPACE_SECRET_PRINTER=webserver
 NAMESPACE_ARGOCD=argocd
 CHART_DIR=./secret_printer_webserver
 RELEASE_NAME=secret-printer-webserver
@@ -51,16 +51,15 @@ template:
 	helm template $(RELEASE_NAME) $(CHART_DIR) --namespace $(NAMESPACE_SECRET_PRINTER) --kubeconfig $(KUBECONFIG)
 
 # Installs ArgoCD 7.5.2
-.PHONY: install_argo
+.PHONY: install-argo
 install_argo:
 	helm dependency build argocd
 	helm upgrade --install argocd argocd --namespace $(NAMESPACE_ARGOCD) --values argocd/values.yaml --create-namespace
 
 # Uninstalls ArgoCD 7.5.2
-.PHONY: uninstall_argo
+.PHONY: uninstall-argo
 uninstall_argo:
-	helm dependency build argocd
-	helm uninstall argocd argocd --namespace $(NAMESPACE_ARGOCD)
+	helm uninstall argocd --namespace $(NAMESPACE_ARGOCD)
 
 # Add HashiCorp Helm repository (if not already added) and update it
 .PHONY: add-hashicorp-repo
