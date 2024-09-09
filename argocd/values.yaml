@@ -1,3 +1,7 @@
+vault:
+  address: http://vault.vault:8200
+  k8sRole: argocd
+
 argo-cd:
   repoServer:
     rbac:
