@@ -7,7 +7,7 @@ data:
     apiVersion: argoproj.io/v1alpha1
     kind: ConfigManagementPlugin
     metadata:
-      name: argocd-vault-plugin-helm
+      name: argocd-vault-plugin
     spec:
       allowConcurrency: true
       discover:
@@ -15,13 +15,12 @@ data:
           command:
             - sh
             - "-c"
-            - "find . -name 'Chart.yaml' && find . -name 'values.yaml'"
+            - "find . -name '*.yaml' | xargs -I {} grep \"<path\\|avp\\.kubernetes\\.io\" {} | grep ."
       generate:
         command:
-          - sh
-          - "-c"
-          - |
-            helm template $ARGOCD_APP_NAME --include-crds . |
-            argocd-vault-plugin generate -s argocd-vault-plugin-credentials -
+          - argocd-vault-plugin
+          - generate
+          - "."
+          - -s argocd:vault-config
       lockRepo: false
 ---
