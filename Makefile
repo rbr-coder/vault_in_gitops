@@ -71,7 +71,7 @@ add-hashicorp-repo:
 # Install HashiCorp Vault with Helm
 .PHONY: install-vault
 install-vault: add-hashicorp-repo
-	helm upgrade --install $(VAULT_RELEASE_NAME) hashicorp/vault --version $(VAULT_VERSION) --namespace $(VAULT_NAMESPACE) --kubeconfig $(KUBECONFIG) --create-namespace
+	helm upgrade --install $(VAULT_RELEASE_NAME) hashicorp/vault --version $(VAULT_VERSION) --namespace $(VAULT_NAMESPACE) --kubeconfig $(KUBECONFIG) --create-namespace --set "server.dev.enabled=true"
 
 # Uninstall HashiCorp Vault
 .PHONY: uninstall-vault
