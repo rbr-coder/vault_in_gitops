@@ -56,6 +56,12 @@ install_argo:
 	helm dependency build argocd
 	helm upgrade --install argocd argocd --namespace $(NAMESPACE_ARGOCD) --values argocd/values.yaml --create-namespace
 
+# Uninstalls ArgoCD 7.5.2
+.PHONY: uninstall_argo
+uninstall_argo:
+	helm dependency build argocd
+	helm uninstall argocd argocd --namespace $(NAMESPACE_ARGOCD)
+
 # Add HashiCorp Helm repository (if not already added) and update it
 .PHONY: add-hashicorp-repo
 add-hashicorp-repo:
