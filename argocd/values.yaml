@@ -33,7 +33,7 @@ argo-cd:
     extraContainers:
       - name: avp
         command: [ /var/run/argocd/argocd-cmp-server ]
-        image: registry.access.redhat.com/ubi8
+        image: quay.io/argoproj/argocd:v2.12.3
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
