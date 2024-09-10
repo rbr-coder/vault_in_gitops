@@ -18,3 +18,7 @@ k3d cluster create mycluster
 ```bash
 make install-all
 ```
+
+## Sources
+ * [argocd-vault-plugin](https://github.com/argoproj-labs/argocd-vault-plugin)
+ * [follow-a-long](https://dev.to/luafanti/injecting-secrets-from-vault-into-helm-charts-with-argocd-49k)
