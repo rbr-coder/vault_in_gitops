@@ -1,14 +1,15 @@
 # Vault as Central Secret Store in GitOps
 
-## Prerequisites
+
+## Get Started 
+### Prerequisites:
 
 * helm installed
 * kubectl installed
 * k3d installed
 * vault cli installed
 
-## Get Started
-
+### Create local PoC
 1. Create local k3d cluster
 ```bash
 k3d cluster create mycluster
