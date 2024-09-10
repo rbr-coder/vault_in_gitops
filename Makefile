@@ -1,50 +1,74 @@
-NAMESPACE_SECRET_PRINTER=webserver
-NAMESPACE_ARGOCD=argocd
-KUBECONFIG=$(HOME)/.kube/config
-VAULT_NAMESPACE=vault
-VAULT_RELEASE_NAME=vault
-VAULT_VERSION=0.25.0  # Change this to a specific Vault version if necessary
+# Variables
+NAMESPACE_SECRET_PRINTER = webserver
+NAMESPACE_ARGOCD = argocd
+KUBECONFIG = $(HOME)/.kube/config
+VAULT_NAMESPACE = vault
+VAULT_RELEASE_NAME = vault
+VAULT_VERSION = 0.25.0 # Adjust to desired Vault version
+ARGOCD_VERSION = 7.5.2 # Adjust to desired ArgoCD version
 
-.PHONY: help install-argo uninstall-argo add-hashicorp-repo install-vault uninstall-vault apply-webserver-app clean
+# Common Helm options
+HELM_OPTS = --kubeconfig $(KUBECONFIG) --create-namespace
+
+.PHONY: help install-argo uninstall-argo add-hashicorp-repo install-vault configure-vault uninstall-vault apply-webserver-app install-all clean
 
 # Default target: shows usage information
 help:
-	@echo "  install-argo     - Install ArgoCD 7.5.2"
-	@echo "  uninstall-argo   - Uninstall ArgoCD 7.5.2"
-	@echo "  install-vault    - Install HashiCorp Vault with Helm"
-	@echo "  uninstall-vault  - Uninstall HashiCorp Vault"
-	@echo "  clean            - Cleanup resources"
-	@echo "  apply-webserver-app - Create ArgoCD Application for Webserver"
+	@echo "Available targets:"
+	@echo "  install-argo       - Install ArgoCD $(ARGOCD_VERSION)"
+	@echo "  uninstall-argo     - Uninstall ArgoCD"
+	@echo "  install-vault      - Install HashiCorp Vault $(VAULT_VERSION)"
+	@echo "  uninstall-vault    - Uninstall HashiCorp Vault"
+	@echo "  configure-vault    - Configure Vault with Kubernetes auth"
+	@echo "  apply-webserver-app - Create ArgoCD Application for the Webserver"
+	@echo "  install-all        - Install everything: ArgoCD, Vault, configure and apply webserver app"
+	@echo "  clean              - Cleanup resources (Vault, ArgoCD, namespaces)"
 
-# Installs ArgoCD 7.5.2
+# Install ArgoCD with Helm
 install-argo:
+	@echo "Installing ArgoCD $(ARGOCD_VERSION)..."
 	helm dependency build argocd
-	helm upgrade --install argocd argocd --namespace $(NAMESPACE_ARGOCD) --values argocd/values.yaml --create-namespace
+	helm upgrade --install argocd argocd --namespace $(NAMESPACE_ARGOCD) --values argocd/values.yaml $(HELM_OPTS)
 
-# Uninstalls ArgoCD 7.5.2
+# Uninstall ArgoCD
 uninstall-argo:
+	@echo "Uninstalling ArgoCD..."
 	helm uninstall argocd --namespace $(NAMESPACE_ARGOCD)
 
 # Add HashiCorp Helm repository (if not already added) and update it
 add-hashicorp-repo:
+	@echo "Adding and updating HashiCorp Helm repository..."
 	helm repo add hashicorp https://helm.releases.hashicorp.com || true
 	helm repo update
 
-# Install HashiCorp Vault with Helm
+# Install HashiCorp Vault using Helm
 install-vault: add-hashicorp-repo
+	@echo "Installing Vault $(VAULT_VERSION)..."
 	helm upgrade --install $(VAULT_RELEASE_NAME) hashicorp/vault --version $(VAULT_VERSION) \
-	--namespace $(VAULT_NAMESPACE) --kubeconfig $(KUBECONFIG) --create-namespace --set "server.dev.enabled=true"
+	--namespace $(VAULT_NAMESPACE) $(HELM_OPTS) --set "server.dev.enabled=true"
+
+# Configure Vault with Kubernetes authentication
+configure-vault:
+	@echo "Configuring Vault..."
+	chmod +x vault/configure_k8s_auth.sh
+	vault/configure_k8s_auth.sh
 
 # Uninstall HashiCorp Vault
 uninstall-vault:
-	helm uninstall $(VAULT_RELEASE_NAME) --namespace $(VAULT_NAMESPACE) --kubeconfig $(KUBECONFIG)
+	@echo "Uninstalling Vault..."
+	helm uninstall $(VAULT_RELEASE_NAME) --namespace $(VAULT_NAMESPACE)
 
 # Create ArgoCD Application for the Webserver
 apply-webserver-app:
-	kubectl apply -f argocd/secret_printer_webserver_app.yaml -n argocd --kubeconfig $(KUBECONFIG) || true
+	@echo "Applying ArgoCD Webserver application..."
+	kubectl apply -f argocd/secret_printer_webserver_app.yaml -n $(NAMESPACE_ARGOCD) --kubeconfig $(KUBECONFIG)
 
-# Cleanup resources (e.g., leftover resources after uninstalling)
-clean:
+# Install everything: Vault, ArgoCD, Vault configuration, and Webserver app
+install-all: install-vault install-argo configure-vault apply-webserver-app
+
+# Cleanup resources: Vault, ArgoCD, namespaces
+clean: uninstall-vault uninstall-argo
+	@echo "Cleaning up namespaces and resources..."
 	kubectl delete namespace $(NAMESPACE_SECRET_PRINTER) --kubeconfig $(KUBECONFIG) || true
 	kubectl delete namespace $(NAMESPACE_ARGOCD) --kubeconfig $(KUBECONFIG) || true
 	kubectl delete namespace $(VAULT_NAMESPACE) --kubeconfig $(KUBECONFIG) || true
